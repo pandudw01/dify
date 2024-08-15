@@ -1,16 +1,13 @@
 pipeline {
     agent none
     environment {
-        DOCKERHUB_USER = credentials('dockerhub_credentials') 
-        DOCKERHUB_TOKEN = credentials('dockerhub_credentials') 
+        DOCKERHUB_USER = credentials('dockerhub_user') // replace with your Jenkins credentials ID
+        DOCKERHUB_TOKEN = credentials('dockerhub_token') // replace with your Jenkins credentials ID
         DIFY_WEB_IMAGE_NAME = "${DIFY_WEB_IMAGE_NAME ?: 'langgenius/dify-web'}"
         DIFY_API_IMAGE_NAME = "${DIFY_API_IMAGE_NAME ?: 'langgenius/dify-api'}"
     }
     stages {
-        stage('Prepare') {
-            agent {
-                label 'linux' // atau label yang sesuai untuk runner Anda
-            }
+        stage('Build and Push Images') {
             matrix {
                 axes {
                     axis {
@@ -22,8 +19,11 @@ pipeline {
                         values 'api', 'web'
                     }
                 }
+                agent {
+                    label 'linux' // or use a specific label for your runners
+                }
                 stages {
-                    stage('Build Docker image') {
+                    stage('Build Docker Image') {
                         steps {
                             script {
                                 def imageName = env.PLATFORM.contains('arm64') ? "${DIFY_API_IMAGE_NAME}" : "${DIFY_WEB_IMAGE_NAME}"
@@ -33,12 +33,12 @@ pipeline {
 
                                 echo "Building ${context} image for platform ${platform}"
 
-                                // Instal Docker dan setup Docker environment
+                                // Install Docker and setup Docker environment
                                 sh 'curl -fsSL https://get.docker.com/ | sudo sh'
                                 sh 'sudo usermod -aG docker $USER'
                                 sh 'newgrp docker || true'
 
-                                docker.withRegistry('https://index.docker.io/v1/', 'dockerhub_credentials') {
+                                docker.withRegistry('https://index.docker.io/v1/', DOCKERHUB_USER) {
                                     def buildArgs = [
                                         '--build-arg', "COMMIT_SHA=${env.GIT_COMMIT}"
                                     ]
@@ -56,14 +56,14 @@ pipeline {
         }
         stage('Create Manifest') {
             agent {
-                label 'linux' // atau label yang sesuai untuk runner Anda
+                label 'linux' // or use a specific label for your runners
             }
             steps {
                 script {
                     def apiImageName = "${DIFY_API_IMAGE_NAME}"
                     def webImageName = "${DIFY_WEB_IMAGE_NAME}"
 
-                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub_credentials') {
+                    docker.withRegistry('https://index.docker.io/v1/', DOCKERHUB_USER) {
                         sh 'docker buildx create --use'
                         sh 'docker buildx inspect --bootstrap'
 
@@ -80,6 +80,7 @@ pipeline {
     post {
         always {
             echo 'Cleaning up...'
+            // Add any necessary cleanup tasks here
         }
     }
 }
