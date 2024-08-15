@@ -9,9 +9,9 @@ pipeline {
 
     // }
 
-    triggers {
-        githubPush(triggerOnPush: true, triggerOnMergeRequest: true, branchFilterType: 'All')
-    }
+    // triggers {
+    //     githubPush(triggerOnPush: true, triggerOnMergeRequest: true, branchFilterType: 'All')
+    // }
 
     stages {
         stage('Checkout') {
