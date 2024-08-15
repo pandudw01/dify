@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_CREDENTIALS_ID = 'docker-credentials'  
-        DOCKER_REGISTRY = 'docker.io' 
+        DOCKER_CREDENTIALS_ID = 'docker_username'  
+        DOCKER_REGISTRY = 'https://index.docker.io/v1/' 
     }
 
     stages {
