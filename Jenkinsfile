@@ -31,7 +31,7 @@ pipeline {
             steps {
                 script {
                     sh '''
-                    make build-all
+                    make build-push-all
                     '''
                 }
             }
