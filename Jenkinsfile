@@ -1,17 +1,9 @@
 pipeline {
     agent any
 
-    // tools {
-    
-    // }
-
-    // environment {
-
-    // }
-
-    // triggers {
-    //     githubPush(triggerOnPush: true, triggerOnMergeRequest: true, branchFilterType: 'All')
-    // }
+    environment {
+        WORKING_DIRECTORY = 'sdks/nodejs-client' // Direktori kerja default
+    }
 
     stages {
         stage('Checkout') {
@@ -20,8 +12,8 @@ pipeline {
                 checkout scm
             }
         }
-    }
-    stage('Test Matrix') {
+
+        stage('Test Matrix') {
             matrix {
                 axes {
                     axis {
@@ -35,6 +27,7 @@ pipeline {
                             script {
                                 docker.image("node:${env.NODE_VERSION}").inside {
                                     dir("${WORKING_DIRECTORY}") {
+                                        // Instal dependencies
                                         sh 'yarn install'
                                     }
                                 }
@@ -47,6 +40,7 @@ pipeline {
                             script {
                                 docker.image("node:${env.NODE_VERSION}").inside {
                                     dir("${WORKING_DIRECTORY}") {
+                                        // Jalankan unit tests
                                         sh 'yarn test'
                                     }
                                 }
@@ -57,3 +51,13 @@ pipeline {
             }
         }
     }
+
+    post {
+        success {
+            echo 'Tests passed successfully!'
+        }
+        failure {
+            echo 'Tests failed.'
+        }
+    }
+}
