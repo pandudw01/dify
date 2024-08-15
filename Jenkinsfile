@@ -1,25 +1,21 @@
 pipeline {
     agent {
-        docker {
-            image 'python:3.10-alpine' 
-            args '-v /var/run/docker.sock:/var/run/docker.sock' 
+        docker {image 'node:20.16.0-alpine3.20'}
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                echo 'Checking out from Git'
+                checkout scm
+            }
         }
     }
     stages {
-        stage('Checkout SCM') {
-            steps {
-                checkout scm /
-            }
-        }
         stage('Test') {
             steps {
-                sh 'python --version'
+                sh 'node --version'
             }
         }
-    }
-    post {
-        always {
-            echo 'Completed'
-        }
-    }
+    }   
 }
