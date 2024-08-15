@@ -30,13 +30,9 @@ pipeline {
         stage('Build API and Web Image') {
             steps {
                 script {
-                    docker.withRegistry(DOCKER_REGISTRY, DOCKER_CREDENTIALS_ID) {
-                        echo 'Logged in to Docker Registry'
-
-                        sh '''
-                        docker pull nginx
-                        '''
-                    }
+                    sh '''
+                    docker pull nginx
+                    '''
                 }
             }
         }
