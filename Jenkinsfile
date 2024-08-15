@@ -1,6 +1,11 @@
 pipeline {
     agent any
 
+    environment {
+        DOCKER_CREDENTIALS_ID = 'docker-credentials'  
+        DOCKER_REGISTRY = 'docker.io' 
+    }
+
     stages {
         stage('Checkout') {
             steps {
@@ -17,7 +22,20 @@ pipeline {
                         aws --version
                         '''
                     } else {
-                        echo 'Docker installation script only runs on Unix-based systems'
+                        echo 'Tool verification script only runs on Unix-based systems'
+                    }
+                }
+            }
+        }
+        stage('Build API and Web Image') {
+            steps {
+                script {
+                    docker.withRegistry(DOCKER_REGISTRY, DOCKER_CREDENTIALS_ID) {
+                        echo 'Logged in to Docker Registry'
+
+                        sh '''
+                        make build-push-all
+                        '''
                     }
                 }
             }
