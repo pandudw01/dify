@@ -40,7 +40,7 @@ pipeline {
 
     post {
         always {
-            echo 'Pipeline completed, brow
+            echo 'Pipeline completed, guys
         }
     }
 }
