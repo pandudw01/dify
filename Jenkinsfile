@@ -1,5 +1,7 @@
 pipeline {
-    agent any
+    agent {
+        docker { image 'python:3.10-alpine' }
+    }
 
     stages {
         stage('Checkout') {
@@ -12,19 +14,22 @@ pipeline {
             steps {
                 script {
                     sh '''
-                    sudo apt-get update -y
-                    sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
-                    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-                    sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-                    sudo apt-get update -y
-                    sudo apt-get install -y docker-ce
-                    sudo docker --version
+                    docker --version
+                    '''
+                }
+            }
+        }
+        stage('Build') {
+            steps {
+                script {
+                    sh '''
+                    docker pull hello-world
+                    docker run hello-world
                     '''
                 }
             }
         }
     }
-    
     post {
         always {
             echo 'Pipeline selesai'
