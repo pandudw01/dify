@@ -34,7 +34,7 @@ pipeline {
                         echo 'Logged in to Docker Registry'
 
                         sh '''
-                        make build-push-all
+                        docker pull nginx
                         '''
                     }
                 }
