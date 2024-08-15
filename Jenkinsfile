@@ -1,7 +1,5 @@
 pipeline {
-    agent {
-        docker { image 'node:20.16.0-alpine3.20' } 
-    }
+    agent none
 
     stages {
         stage('Checkout') {
@@ -10,16 +8,17 @@ pipeline {
                 checkout scm 
             }
         }
-        stage('Test') {
-            steps {
-                sh 'node --version' 
-            }
-        }
-    }
+    //     stage('Test') {
+    //         steps {
+    //             sh 'node --version' 
+    //         }
+    //     }
+    // }
     
-    post {
-        always {
-            echo 'Pipeline selesai'
-        }
-    }
+    // post {
+    //     always {
+    //         echo 'Pipeline selesai'
+    //     }
+    // }
+}
 }
