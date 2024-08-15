@@ -8,7 +8,6 @@ pipeline {
                 checkout scm 
             }
         }
-    }
         stage('Setup Docker') {
             steps {
                 script {
@@ -24,4 +23,11 @@ pipeline {
                 }
             }
         }
+    }
+    
+    post {
+        always {
+            echo 'Pipeline selesai'
+        }
+    }
 }
