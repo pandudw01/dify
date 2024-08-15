@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        WORKING_DIRECTORY = 'sdks/nodejs-client' // Direktori kerja default
+        WORKING_DIRECTORY = 'sdks/nodejs-client' 
     }
 
     stages {
@@ -10,6 +10,18 @@ pipeline {
             steps {
                 echo 'Checking out from Git'
                 checkout scm
+            }
+        }
+
+        stage('Setup Docker') {
+            steps{
+                echo "Set up Docker"
+                sh 'curl https://get.docker.com/ -o install-docker.sh'
+                chmod +x install-docker.sh
+                ./install-docker.sh
+                sudo usermod -aG docker $USER 
+                newgrp docker
+                source ~/.bashrc
             }
         }
 
