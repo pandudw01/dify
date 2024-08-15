@@ -1,5 +1,5 @@
 pipeline {
-    agent none
+    agent any
     environment {
         DOCKERHUB_USER = credentials('dockerhub_user') 
         DOCKERHUB_TOKEN = credentials('dockerhub_password') 
@@ -18,9 +18,6 @@ pipeline {
                         name 'CONTEXT'
                         values 'api', 'web'
                     }
-                }
-                agent {
-                    label 'linux' 
                 }
                 stages {
                     stage('Build Docker Image') {
@@ -54,9 +51,7 @@ pipeline {
             }
         }
         stage('Create Manifest') {
-            agent {
-                label 'linux' 
-            }
+
             steps {
                 script {
                     def apiImageName = "${DIFY_API_IMAGE_NAME}"
