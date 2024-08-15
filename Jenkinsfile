@@ -1,8 +1,8 @@
 pipeline {
     agent none
     environment {
-        DOCKERHUB_USER = credentials('dockerhub_user') // replace with your Jenkins credentials ID
-        DOCKERHUB_TOKEN = credentials('dockerhub_token') // replace with your Jenkins credentials ID
+        DOCKERHUB_USER = credentials('dockerhub_user') 
+        DOCKERHUB_TOKEN = credentials('dockerhub_password') 
         DIFY_WEB_IMAGE_NAME = "${DIFY_WEB_IMAGE_NAME ?: 'langgenius/dify-web'}"
         DIFY_API_IMAGE_NAME = "${DIFY_API_IMAGE_NAME ?: 'langgenius/dify-api'}"
     }
@@ -20,7 +20,7 @@ pipeline {
                     }
                 }
                 agent {
-                    label 'linux' // or use a specific label for your runners
+                    label 'linux' 
                 }
                 stages {
                     stage('Build Docker Image') {
@@ -33,7 +33,6 @@ pipeline {
 
                                 echo "Building ${context} image for platform ${platform}"
 
-                                // Install Docker and setup Docker environment
                                 sh 'curl -fsSL https://get.docker.com/ | sudo sh'
                                 sh 'sudo usermod -aG docker $USER'
                                 sh 'newgrp docker || true'
@@ -56,7 +55,7 @@ pipeline {
         }
         stage('Create Manifest') {
             agent {
-                label 'linux' // or use a specific label for your runners
+                label 'linux' 
             }
             steps {
                 script {
@@ -80,7 +79,6 @@ pipeline {
     post {
         always {
             echo 'Cleaning up...'
-            // Add any necessary cleanup tasks here
         }
     }
 }
