@@ -7,6 +7,11 @@ pipeline {
         DIFY_API_IMAGE_NAME = "${DIFY_API_IMAGE_NAME ?: 'langgenius/dify-api'}"
     }
     stages {
+        stage('Checkout SCM') {
+            steps {
+                checkout scm
+            }
+        }
         stage('Build and Push Images') {
             matrix {
                 axes {
@@ -51,7 +56,6 @@ pipeline {
             }
         }
         stage('Create Manifest') {
-
             steps {
                 script {
                     def apiImageName = "${DIFY_API_IMAGE_NAME}"
