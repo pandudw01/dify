@@ -17,11 +17,11 @@ pipeline {
             steps{
                 echo "Set up Docker"
                 sh 'curl https://get.docker.com/ -o install-docker.sh'
-                chmod +x install-docker.sh
-                ./install-docker.sh
-                sudo usermod -aG docker $USER 
-                newgrp docker
-                source ~/.bashrc
+                sh 'chmod +x install-docker.sh'
+                sh './install-docker.sh'
+                sh 'sudo usermod -aG docker $USER'
+                sh 'newgrp docker'
+                sh 'source ~/.bashrc'
             }
         }
 
