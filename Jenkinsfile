@@ -1,8 +1,13 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'docker:latest' 
+            args '-v /var/run/docker.sock:/var/run/docker.sock' /
+        }
+    }
     environment {
-        DOCKERHUB_USER = credentials('dockerhub_user') 
-        DOCKERHUB_TOKEN = credentials('dockerhub_password') 
+        DOCKERHUB_USER = credentials('dockerhub_user')
+        DOCKERHUB_TOKEN = credentials('dockerhub_password')
         DIFY_WEB_IMAGE_NAME = "${DIFY_WEB_IMAGE_NAME ?: 'langgenius/dify-web'}"
         DIFY_API_IMAGE_NAME = "${DIFY_API_IMAGE_NAME ?: 'langgenius/dify-api'}"
     }
@@ -34,10 +39,6 @@ pipeline {
                                 def serviceName = "build-${context}-${platform}"
 
                                 echo "Building ${context} image for platform ${platform}"
-
-                                sh 'curl -fsSL https://get.docker.com/ | sudo sh'
-                                sh 'sudo usermod -aG docker $USER'
-                                sh 'newgrp docker || true'
 
                                 docker.withRegistry('https://index.docker.io/v1/', DOCKERHUB_USER) {
                                     def buildArgs = [
