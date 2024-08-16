@@ -44,6 +44,8 @@ pipeline {
                         sh '''
                         make push-all
                         '''
+
+                        echo 'Push completed'
                     }
                 }
             }
