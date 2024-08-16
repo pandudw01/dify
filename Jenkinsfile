@@ -35,11 +35,12 @@ pipeline {
                 }
             }
         }
-        stage('Docker Login') {
+        stage('Docker Login and Push') {
             steps {
                 script {
                     docker.withRegistry(DOCKER_REGISTRY, DOCKER_CREDENTIALS_ID) {
-                        echo 'Login to Docker Hub'
+                        echo 'Logged in to Docker Hub'
+                        
                         sh '''
                         make push-all
                         '''
