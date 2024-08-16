@@ -16,13 +16,12 @@ pipeline {
         stage('Verify Tools') {
             steps {
                 script {
-                    if (isUnix()) {
                         sh '''
                         docker --version
+                        aws --version
                         '''
-                    } else {
                         echo 'Tool verification script only runs on Unix-based systems'
-                    }
+                    
                 }
             }
         }
