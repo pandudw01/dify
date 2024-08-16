@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         DOCKER_CREDENTIALS_ID = 'docker_username'  
-        DOCKER_REGISTRY = 'https://index.docker.io/v1/' 
+        DOCKER_REGISTRY = 'docker.io' 
     }
 
     stages {
@@ -32,6 +32,18 @@ pipeline {
                     sh '''
                     make build-all
                     '''
+                }
+            }
+        }
+        stage('Docker Login') {
+            steps {
+                script {
+                    docker.withRegistry(DOCKER_REGISTRY, DOCKER_CREDENTIALS_ID {
+                        echo 'Login to Docker Hub'
+                        sh '''
+                        make push-all
+                        '''
+                    }
                 }
             }
         }
