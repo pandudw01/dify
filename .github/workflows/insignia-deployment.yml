@@ -20,7 +20,7 @@ jobs:
 
     - name: Change directory and build Docker image
       run: |
-        cd /home/nasrullah_pandud1/dify/docker
+        cd /home/nasrullah_pandud1/dify/web
         docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
         docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
       env:
