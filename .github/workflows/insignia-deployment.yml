@@ -28,28 +28,22 @@ jobs:
         REPOSITORY: llmops-dify-web
         IMAGE_TAG: ${{ github.sha }}
 
-  # deploy:
-  #   runs-on: [self-hosted] 
-  #   needs: build-and-push  
+  deploy:
+    runs-on: [self-hosted] 
+    needs: build-and-push  
 
-  #   steps:
-  #   - name: SSH into VM and Deploy
-  #     uses: appleboy/ssh-action@v0.2.2
-  #     with:
-  #       host: ${{ secrets.VM_HOST }}
-  #       username: ${{ secrets.VM_USER }}
-  #       key: ${{ secrets.VM_SSH_KEY }}
-  #       script: |
-  #         # Update Docker and Docker Compose if needed
-  #         sudo apt-get update
-  #         sudo apt-get install -y docker.io docker-compose
+    steps:
+    - name: SSH into VM and Deploy
+      uses: appleboy/ssh-action@v0.2.2
+      with:
+        host: ${{ secrets.VM_HOST }}
+        username: ${{ secrets.VM_USER }}
+        key: ${{ secrets.VM_SSH_KEY }}
+        script: |
+
+          aws ecr get-login-password --region ap-southeast-1 | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
           
-  #         # Login to Amazon ECR
-  #         aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
+          cd /home/nasrullah_pandud1/dify/docker
+          docker-compose pull
           
-  #         # Change directory and pull the latest Docker image
-  #         cd /home/nasrullah_pandud1/dify/docker
-  #         docker-compose pull
-          
-  #         # Restart services
-  #         docker-compose up -d
+          docker-compose up -d
