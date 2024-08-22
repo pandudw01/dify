@@ -37,26 +37,26 @@ jobs:
         docker push ${{ secrets.ECR_REGISTRY }}/llmops-dify-api:${{ github.event.inputs.docker_tag }}
         docker push ${{ secrets.ECR_REGISTRY }}/llmops-dify-web:${{ github.event.inputs.docker_tag }}
 
-  deploy:
-    runs-on: [executor] 
-    needs: build-and-push  
+  # deploy:
+  #   runs-on: [executor] 
+  #   needs: build-and-push  
 
-    steps:
-    - name: SSH into VM and Deploy
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.VM_HOST }}
-        username: ${{ secrets.VM_USER }}
-        key: ${{ secrets.VM_SSH_KEY }}
-        script: |
-          aws ecr get-login-password --region ${{ secrets.REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
-          docker ps
-          cd ${{ secrets.TARGET_PATH }}
-          git switch llmops
-          git pull origin llmops
+  #   steps:
+  #   - name: SSH into VM and Deploy
+  #     uses: appleboy/ssh-action@master
+  #     with:
+  #       host: ${{ secrets.VM_HOST }}
+  #       username: ${{ secrets.VM_USER }}
+  #       key: ${{ secrets.VM_SSH_KEY }}
+  #       script: |
+  #         aws ecr get-login-password --region ${{ secrets.REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
+  #         docker ps
+  #         cd ${{ secrets.TARGET_PATH }}
+  #         git switch llmops
+  #         git pull origin llmops
 
-          IMAGE_VERSION=${{ github.event.inputs.image_version }}
-          sed -i "s/590183785692.dkr.ecr.ap-southeast-1.amazonaws.com\/llmops-dify-api:[0-9.]*$/590183785692.dkr.ecr.ap-southeast-1.amazonaws.com\/llmops-dify-api:$IMAGE_VERSION/" docker-compose.yml
-          sed -i "s/590183785692.dkr.ecr.ap-southeast-1.amazonaws.com\/llmops-dify-web:[0-9.]*$/590183785692.dkr.ecr.ap-southeast-1.amazonaws.com\/llmops-dify-web:$IMAGE_VERSION/" docker-compose.yml
+  #         IMAGE_VERSION=${{ github.event.inputs.image_version }}
+  #         sed -i "s/590183785692.dkr.ecr.ap-southeast-1.amazonaws.com\/llmops-dify-api:[0-9.]*$/590183785692.dkr.ecr.ap-southeast-1.amazonaws.com\/llmops-dify-api:$IMAGE_VERSION/" docker-compose.yml
+  #         sed -i "s/590183785692.dkr.ecr.ap-southeast-1.amazonaws.com\/llmops-dify-web:[0-9.]*$/590183785692.dkr.ecr.ap-southeast-1.amazonaws.com\/llmops-dify-web:$IMAGE_VERSION/" docker-compose.yml
 
-          docker-compose up -d
+  #         docker-compose up -d
