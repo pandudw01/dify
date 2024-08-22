@@ -1,11 +1,19 @@
-name: CI/CD Pipeline
+name: Build and Deploy LLMOps Staging
 
 on:
-  workflow_dispatch:  
+  workflow_dispatch:
+    inputs:
+      docker_tag:
+        description: 'Tag untuk Docker image'
+        required: true
+        default: 'latest'
+        type: string
 
 jobs:
   build-and-push:
-    runs-on: [self-hosted]  
+    runs-on: [executor]
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE20: true  
 
     steps:
     - name: Checkout repository
@@ -13,20 +21,27 @@ jobs:
 
     - name: Login to Amazon ECR
       run: |
-        aws ecr get-login-password --region ap-southeast-1 | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
+        aws ecr get-login-password --region ${{ secrets.REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
 
-    - name: Change directory and build Docker image
+    - name: Build Docker image
       run: |
-        cd /home/nasrullah_pandud1/dify/web
-        docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
-        docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
-      env:
-        REGISTRY: ${{ secrets.ECR_REGISTRY }}
-        REPOSITORY: llmops-dify-web
-        IMAGE_TAG: ${{ github.sha }}
+        cd ${{ secrets.LLM_PATH }}
+        git switch llmops
+        git pull origin llmops
+        
+        # Build Docker image with the provided tag
+        docker build -t ${{ secrets.ECR_REGISTRY }}/llmops-dify-api:${{ github.event.inputs.docker_tag }} .
+
+    - name: Push Docker image
+      run: |
+        # Push Docker image with the provided tag
+        docker push ${{ secrets.ECR_REGISTRY }}/llmops-dify-api:${{ github.event.inputs.docker_tag }}
+
+    - name: List Docker images
+      run: docker images
 
   deploy:
-    runs-on: [self-hosted] 
+    runs-on: [executor] 
     needs: build-and-push  
 
     steps:
@@ -37,10 +52,18 @@ jobs:
         username: ${{ secrets.VM_USER }}
         key: ${{ secrets.VM_SSH_KEY }}
         script: |
+          aws ecr get-login-password --region ${{ secrets.REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
+          docker ps
+          cd ${{ secrets.TARGET_PATH }}
+          git switch llmops
+          git pull origin llmops
+          
+          # Optionally, pull the latest image on the VM
+          docker pull ${{ secrets.ECR_REGISTRY }}/llmops-dify-api:${{ github.event.inputs.docker_tag }}
 
-          aws ecr get-login-password --region ap-southeast-1 | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
-          
-          cd /home/nasrullah_pandud1/dify/docker
-          docker-compose pull
-          
-          docker-compose up -d
+          docker compose down
+
+          # Ensure a 20-second delay before bringing up new containers
+          sleep 20
+
+          docker compose up -d
