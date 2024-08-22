@@ -29,7 +29,6 @@ jobs:
         git switch llmops
         git pull origin llmops
         
-        # Build Docker image with the provided tag
         docker build -t ${{ secrets.ECR_REGISTRY }}/llmops-dify-api:${{ github.event.inputs.docker_tag }} .
 
     - name: Push Docker image
@@ -57,13 +56,76 @@ jobs:
           cd ${{ secrets.TARGET_PATH }}
           git switch llmops
           git pull origin llmops
-          
-          # Optionally, pull the latest image on the VM
-          docker pull ${{ secrets.ECR_REGISTRY }}/llmops-dify-api:${{ github.event.inputs.docker_tag }}
 
-          docker compose down
-
-          # Ensure a 20-second delay before bringing up new containers
-          sleep 20
+          IMAGE_VERSION=${{ github.event.inputs.image_version }}
+          sed -i "s/590183785692.dkr.ecr.ap-southeast-1.amazonaws.com\/llmops-dify-api:[0-9.]*$/590183785692.dkr.ecr.ap-southeast-1.amazonaws.com\/llmops-dify-api:$IMAGE_VERSION/" docker-compose.yml
+          sed -i "s/590183785692.dkr.ecr.ap-southeast-1.amazonaws.com\/llmops-dify-web:[0-9.]*$/590183785692.dkr.ecr.ap-southeast-1.amazonaws.com\/llmops-dify-web:$IMAGE_VERSION/" docker-compose.yml
 
           docker compose up -d
+
+
+
+
+
+name: Build and Deploy LLMOps Staging
+
+on:
+  workflow_dispatch:
+    inputs:
+      docker_tag:
+        description: 'Tag for Docker Image'
+        required: true
+        default: 'latest'
+        type: string 
+
+jobs:
+  build-and-push:
+    runs-on: [executor]
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE20: true  
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Login to Amazon ECR
+      run: |
+        aws ecr get-login-password --region ${{ secrets.REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
+
+    - name: Build and Push Docker Images
+      run: |
+        cd ${{ secrets.LLM_PATH }}
+        git switch llmops
+        git pull origin llmops
+
+        docker build -t ${{ secrets.ECR_REGISTRY }}/llmops-dify-api:${{ github.event.inputs.docker_tag }} -f api/Dockerfile api
+        docker build -t ${{ secrets.ECR_REGISTRY }}/llmops-dify-web:${{ github.event.inputs.docker_tag }} -f web/Dockerfile web
+
+        docker images
+
+        docker push ${{ secrets.ECR_REGISTRY }}/llmops-dify-api:${{ github.event.inputs.docker_tag }}
+        docker push ${{ secrets.ECR_REGISTRY }}/llmops-dify-web:${{ github.event.inputs.docker_tag }}
+
+  deploy:
+    runs-on: [executor] 
+    needs: build-and-push  
+
+    steps:
+    - name: SSH into VM and Deploy
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.VM_HOST }}
+        username: ${{ secrets.VM_USER }}
+        key: ${{ secrets.VM_SSH_KEY }}
+        script: |
+          aws ecr get-login-password --region ${{ secrets.REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
+          docker ps
+          cd ${{ secrets.TARGET_PATH }}
+          git switch llmops
+          git pull origin llmops
+
+          IMAGE_VERSION=${{ github.event.inputs.image_version }}
+          sed -i "s/590183785692.dkr.ecr.ap-southeast-1.amazonaws.com\/llmops-dify-api:[0-9.]*$/590183785692.dkr.ecr.ap-southeast-1.amazonaws.com\/llmops-dify-api:$IMAGE_VERSION/" docker-compose.yml
+          sed -i "s/590183785692.dkr.ecr.ap-southeast-1.amazonaws.com\/llmops-dify-web:[0-9.]*$/590183785692.dkr.ecr.ap-southeast-1.amazonaws.com\/llmops-dify-web:$IMAGE_VERSION/" docker-compose.yml
+
+          docker-compose up -d
